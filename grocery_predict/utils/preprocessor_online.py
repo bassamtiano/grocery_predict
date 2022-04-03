@@ -13,7 +13,6 @@ class PreprocessorOnline ():
                 batch_size,
                 dataset_dir = "datasets/OnlineRetail.csv") -> None:
         if os.path.exists(dataset_dir) :
-        
             self.data = pd.read_csv(dataset_dir, encoding= 'unicode_escape')
         
     def preprocessor(self):
@@ -24,23 +23,32 @@ class PreprocessorOnline ():
         g_data["Quantity"] = pd.to_numeric(g_data["Quantity"])
         g_data["UnitEach"] = pd.to_numeric(g_data["UnitPrice"])
 
-        g_data["Date"] = pd.to_datetime(g_data["InvoiceDate"].apply(lambda x: x.split(" ")[0]))
-        g_data["Month"] = pd.to_datetime(g_data["InvoiceDate"].apply(lambda x: x.split(" ")[0])).dt.month
+
+        g_data["Date"] = pd.to_datetime(
+                            g_data["InvoiceDate"].apply(lambda x: x.split(" ")[0])
+                        )
+        g_data["Month"] = pd.to_datetime(
+                            g_data["InvoiceDate"].apply(lambda x: x.split(" ")[0])
+                        ).dt.month
 
         s_data = g_data.groupby("Date")["UnitPrice"].sum().reset_index()
+
         s_data = s_data.rename(columns = {"Date": "date", "UnitPrice": "sales"})
+
+
 
         diff_data = s_data.copy()
         diff_data["prev_sales"] = diff_data["sales"].shift(1)
         diff_data = diff_data.dropna()
+
         diff_data["diff"] = (diff_data["sales"] - diff_data["prev_sales"])
 
         sup_data = diff_data.drop(["prev_sales"], axis = 1)
 
+
         for inc in range(1, 13):
             field_name = "lag_" + str(inc)
             sup_data[field_name] = sup_data["diff"].shift(inc)
-
 
         sup_data = sup_data.dropna().reset_index(drop = True)
         
@@ -55,6 +63,7 @@ class PreprocessorOnline ():
         test_set = data_model[-20:].values
 
         scaler = MinMaxScaler(feature_range = (-1, 1))
+
         scaler = scaler.fit(train_set)
 
         train_set = train_set.reshape(train_set.shape[0], train_set.shape[1])

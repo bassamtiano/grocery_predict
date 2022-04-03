@@ -8,6 +8,7 @@ import pytorch_lightning as pl
 
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler, SequentialSampler
 from utils.preprocessor import Preprocessor
+from utils.preprocessor_online import PreprocessorOnline
 
 class GroceryTrainer(pl.LightningModule):
     def __init__(self):
@@ -19,10 +20,11 @@ class GroceryTrainer(pl.LightningModule):
             num_layers = 4
         )
 
+
         self.linear = nn.Linear(12, 1)
     
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr = 1e-2)
+        optimizer = torch.optim.Adam(self.parameters())
         return optimizer
 
     def training_step(self, train_batch, batch_idx):
@@ -40,7 +42,7 @@ class GroceryTrainer(pl.LightningModule):
         
         output = self.model(x)
         output = self.linear(output[0])
-        output = torch.reshape(output, (6, 1))
+        output = torch.reshape(output, (20, 1))
         return output
 
 class GroceryDataModule(pl.LightningDataModule):
@@ -49,7 +51,7 @@ class GroceryDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
 
     def setup(self, stage = None):
-        ppro = Preprocessor(batch_size = self.batch_size)
+        ppro = PreprocessorOnline(batch_size = self.batch_size)
         x_train, y_train, x_test, y_test, scaler, train_set_scaled, test_set_scaled, data_sales = ppro.preprocessor()
 
         if stage == "fit" :    

@@ -24,7 +24,6 @@ def accuracy(pred, true):
         return 0
     elif pred <= true:
         return pred / true
-
     else:
         return (true * 2 - pred) / true
 
